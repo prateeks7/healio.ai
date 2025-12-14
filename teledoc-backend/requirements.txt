@@ -1,0 +1,49 @@
+# --- Core Framework ---
+fastapi>=0.109.0
+uvicorn>=0.27.0
+python-multipart
+pydantic-settings  # FIXED: Required for Pydantic V2 configuration
+
+# --- Database (Fixed Version Conflict) ---
+# We upgrade motor to 3.6+ to support the latest PyMongo and Python 3.11+
+motor>=3.4.0
+pymongo>=4.6.0
+
+# --- AI & LangChain (Pinned for Stability) ---
+# Pinned <0.3.0 to prevent the 'pydantic_v1' error you saw earlier
+langchain-core<0.3.0
+langchain<0.3.0
+langchain-community<0.3.0
+
+# --- AI Providers ---
+# For Nebius (OpenAI Compatible)
+openai>=1.10.0
+langchain-openai<0.2.0
+
+# For Google (Keep these if you still have legacy Gemini code)
+google-generativeai>=0.3.2
+langchain-google-genai<2.0.0
+google-auth>=2.27.0
+
+# --- CrewAI ---
+crewai
+crewai-tools
+
+# --- Utilities & Tools ---
+python-dotenv==1.0.1
+requests==2.31.0
+aiofiles==23.2.1
+pyjwt==2.8.0
+duckduckgo-search
+
+# --- Image Processing ---
+pytesseract==0.3.10
+Pillow>=10.2.0
+
+# --- File Processing ---
+pandas
+openpyxl
+pypdf
+nest_asyncio
+email-validator
+reportlab
