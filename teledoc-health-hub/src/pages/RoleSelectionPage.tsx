@@ -12,14 +12,14 @@ export default function RoleSelectionPage() {
 
   const handleRoleSelection = async (role: 'patient' | 'doctor') => {
     setIsSelecting(true);
-    
+
     try {
       // Update profile in localStorage with selected role
       const profile = getProfile();
       if (profile) {
         const updatedProfile = { ...profile, role };
         localStorage.setItem('teledoc_profile', JSON.stringify(updatedProfile));
-        
+
         toast({
           title: 'Role Selected',
           description: `You've been registered as a ${role}`,
@@ -49,14 +49,14 @@ export default function RoleSelectionPage() {
           <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-primary mb-4">
             <Activity className="h-10 w-10 text-white" />
           </div>
-          <h1 className="text-3xl font-bold mb-2">Welcome to TeleDoc</h1>
+          <h1 className="text-3xl font-bold mb-2">Welcome to Healio.ai</h1>
           <p className="text-muted-foreground">
             Please select your role to continue
           </p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-4">
-          <Card 
+          <Card
             className="cursor-pointer hover:shadow-lg transition-all hover:border-primary"
             onClick={() => !isSelecting && handleRoleSelection('patient')}
           >
@@ -72,8 +72,8 @@ export default function RoleSelectionPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <Button 
-                className="w-full" 
+              <Button
+                className="w-full"
                 disabled={isSelecting}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -85,7 +85,7 @@ export default function RoleSelectionPage() {
             </CardContent>
           </Card>
 
-          <Card 
+          <Card
             className="cursor-pointer hover:shadow-lg transition-all hover:border-primary"
             onClick={() => !isSelecting && handleRoleSelection('doctor')}
           >
@@ -101,8 +101,8 @@ export default function RoleSelectionPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <Button 
-                className="w-full" 
+              <Button
+                className="w-full"
                 variant="outline"
                 disabled={isSelecting}
                 onClick={(e) => {

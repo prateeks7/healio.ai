@@ -3,7 +3,7 @@ from functools import lru_cache
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    APP_NAME: str = "TeleDoc API"
+    APP_NAME: str = "Healio.ai API"
     MONGODB_URI: str
     DB_NAME: str = "teledoc"
     JWT_SECRET: str
