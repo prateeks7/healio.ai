@@ -71,11 +71,15 @@ export async function sendMessage(
   content: string,
   files?: File[]
 ): Promise<{ reply: any; summary: string; keywords: string[] }> {
-  let fileIds: string[] | undefined;
+  let fileIds: string[] = [];
 
   // Upload files first if provided
   if (files && files.length > 0) {
-    const profile = JSON.parse(localStorage.getItem('teledoc_profile') || '{}');
+    const profile = JSON.parse(
+      localStorage.getItem('healio_profile') ||
+      localStorage.getItem('teledoc_profile') ||
+      '{}'
+    );
     if (profile.patient_id) {
       fileIds = await Promise.all(
         files.map(async (file) => {
@@ -88,7 +92,7 @@ export async function sendMessage(
 
   const { data } = await api.post(`/agents/interaction/${chatId}/message`, {
     message: content,
-    files,
+    attachments: fileIds,  // Send file IDs, not File objects
   });
   return data;
 }

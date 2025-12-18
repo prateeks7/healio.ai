@@ -27,7 +27,6 @@ async def process_image_analysis(file_id: ObjectId, content: bytes, filename: st
 @router.post("/{patient_id}/uploads")
 async def upload_file(
     patient_id: str, 
-    background_tasks: BackgroundTasks,
     file: UploadFile = File(...), 
     user: dict = Depends(require_role(["patient", "admin"]))
 ):
@@ -40,10 +39,18 @@ async def upload_file(
     
     file_id = await upload_file_to_gridfs(file, patient_id, user["sub"])
     
-    # Trigger Vision Analysis in background
-    background_tasks.add_task(process_image_analysis, file_id, content, file.filename)
+    # Run Vision Analysis SYNCHRONOUSLY (not in background)
+    # This ensures the summary is ready before the upload completes
+    summary = await analyze_image(content, file.filename)
+    if summary is None: summary = ""
     
-    return {"file_id": str(file_id)}
+    db = get_database()
+    await db.uploads.update_one(
+        {"file_id": file_id},
+        {"$set": {"image_summary": summary}}
+    )
+    
+    return {"file_id": str(file_id), "summary": summary[:100] + "..." if len(summary) > 100 else summary}
 
 @router.get("/{patient_id}/uploads/{file_id}")
 async def get_file(

@@ -84,10 +84,46 @@ def generate_report_pdf(report_data: dict, patient_name: str = "Patient") -> Byt
     elements.append(Paragraph(patient_summary, normal_style))
     
     # --- 4. Uploaded Files & Analysis ---
-    analyzed_files = doctor_report.get("analyzed_files", [])
-    if analyzed_files:
+    # Fetch file summaries from database
+    from src.db.client import get_database
+    from bson import ObjectId
+    import asyncio
+    
+    async def get_file_summaries(report_data):
+        db = get_database()
+        chat_id = report_data.get("chat_id")
+        if not chat_id:
+            return []
+        
+        chat_doc = await db.chats.find_one({"chat_id": chat_id})
+        if not chat_doc:
+            return []
+        
+        file_summaries = []
+        for msg in chat_doc.get("messages", []):
+            if msg.get("attachments"):
+                for file_id in msg["attachments"]:
+                    try:
+                        upload_doc = await db.uploads.find_one({"file_id": ObjectId(file_id)})
+                        if upload_doc:
+                            filename = upload_doc.get("filename", "Unknown File")
+                            summary = upload_doc.get("image_summary", "Processing...")
+                            if summary and summary != "Processing...":
+                                file_summaries.append(f"{filename}: {summary}")
+                    except:
+                        pass
+        return file_summaries
+    
+    # Run async function to get file summaries
+    try:
+        loop = asyncio.get_event_loop()
+        file_summaries = loop.run_until_complete(get_file_summaries(report_data))
+    except:
+        file_summaries = []
+    
+    if file_summaries:
         elements.append(Paragraph("4. Uploaded Files & Analysis", h2_style))
-        for file_info in analyzed_files:
+        for file_info in file_summaries:
             elements.append(Paragraph(f"• {file_info}", styles['CustomBullet']))
     
     # --- 5. Diagnosis ---

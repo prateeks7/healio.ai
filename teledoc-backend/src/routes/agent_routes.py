@@ -33,6 +33,12 @@ async def chat_message(
     attachments: list[str] = Body([], embed=True),
     user: dict = Depends(require_role(["patient"]))
 ):
+    print(f"DEBUG: Received message request")
+    print(f"DEBUG: message = {message}")
+    print(f"DEBUG: attachments = {attachments}")
+    print(f"DEBUG: attachments type = {type(attachments)}")
+    print(f"DEBUG: attachments length = {len(attachments)}")
+    
     db = get_database()
     chat_doc = await db.chats.find_one({"chat_id": chat_id, "patient_id": user["patient_id"]})
     if not chat_doc:
@@ -51,10 +57,38 @@ async def chat_message(
     history_str = str(history_doc.get("history", {})) if history_doc else "No history provided."
     
     transcript = "\n".join([f"{m['role']}: {m['content']}" for m in chat_doc['messages']] + [f"user: {message}"])
-    transcript = "\n".join([f"{m['role']}: {m['content']}" for m in chat_doc['messages']] + [f"user: {message}"])
     
     # Use new HistoryService for context
     context = await build_extended_context(user["patient_id"], message)
+    
+    # Fetch file summaries from current conversation attachments
+    all_attachments = []
+    for m in chat_doc['messages']:
+        if 'attachments' in m and m['attachments']:
+            all_attachments.extend(m['attachments'])
+    if attachments:  # Add current message attachments
+        all_attachments.extend(attachments)
+    
+    print(f"DEBUG: Found {len(all_attachments)} total attachments in conversation")
+    
+    if all_attachments:
+        from bson import ObjectId
+        context += "\n\n=== UPLOADED FILES IN THIS CONVERSATION ===\n"
+        for file_id in all_attachments:
+            try:
+                upload_doc = await db.uploads.find_one({"file_id": ObjectId(file_id)})
+                if upload_doc:
+                    filename = upload_doc.get("filename", "Unknown File")
+                    summary = upload_doc.get("image_summary", "Processing...")
+                    print(f"DEBUG: File {filename} - Summary length: {len(summary) if summary else 0}")
+                    if summary and summary != "Processing...":
+                        context += f"\nFile: {filename}\nAnalysis: {summary}\n"
+                    else:
+                        print(f"DEBUG: Skipping file {filename} - summary not ready")
+            except Exception as e:
+                print(f"Error fetching file {file_id} for chat context: {e}")
+    
+    print(f"DEBUG: Final context length: {len(context)} chars")
     
     # Run Agent
     agent_reply = interaction_agent.run(context, history_str, transcript)
@@ -104,6 +138,24 @@ async def run_diagnosis(
     for m in chat_doc['messages']:
         if 'attachments' in m and m['attachments']:
             all_attachments.extend(m['attachments'])
+    
+    # Fetch file summaries from database and inject into context
+    file_summaries_text = ""
+    if all_attachments:
+        from bson import ObjectId
+        file_summaries_text = "\n\n=== UPLOADED FILES ===\n"
+        for file_id in all_attachments:
+            try:
+                upload_doc = await db.uploads.find_one({"file_id": ObjectId(file_id)})
+                if upload_doc:
+                    filename = upload_doc.get("filename", "Unknown File")
+                    summary = upload_doc.get("image_summary", "No summary available")
+                    file_summaries_text += f"\nFile: {filename}\nSummary: {summary}\n"
+            except Exception as e:
+                print(f"Error fetching file {file_id}: {e}")
+        
+        # Append to extended context
+        extended_context += file_summaries_text
             
     # Run Medical Crew
     from src.crew.medical_crew import MedicalCrew
