@@ -4,3 +4,4 @@ __pycache__/
 .DS_Store
 dist/
 api_testing.ipynb
+temp_experiments/

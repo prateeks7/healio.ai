@@ -39,6 +39,7 @@ async def upload_file_to_gridfs(file: UploadFile, patient_id: str, user_id: str)
         "filename": file.filename,
         "content_type": file.content_type,
         "checksum": checksum,
+        "image_summary": None, # Populated later
         "ocr_text": None, # Populated later
         "created_at": grid_in.upload_date
     }

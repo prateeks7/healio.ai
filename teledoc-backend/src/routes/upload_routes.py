@@ -2,20 +2,27 @@ from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, Backgro
 from fastapi.responses import StreamingResponse
 from src.security.rbac import require_role
 from src.db.gridfs_utils import upload_file_to_gridfs, download_file_from_gridfs
-from src.services.ocr import extract_text_from_image
+from src.services.vision_service import analyze_image
 from src.db.client import get_database
 from bson import ObjectId
 
 router = APIRouter(prefix="/patients", tags=["Uploads"])
 
-async def process_ocr(file_id: ObjectId, content: bytes):
-    text = extract_text_from_image(content)
-    if text:
-        db = get_database()
-        await db.uploads.update_one(
-            {"file_id": file_id},
-            {"$set": {"ocr_text": text}}
-        )
+async def process_image_analysis(file_id: ObjectId, content: bytes, filename: str):
+    """
+    Background task to analyze image using Gemini Vision.
+    Replaces legacy OCR.
+    """
+    summary = await analyze_image(content, filename)
+    
+    # Update DB with summary (renamed from ocr_text)
+    if summary is None: summary = ""
+    
+    db = get_database()
+    await db.uploads.update_one(
+        {"file_id": file_id},
+        {"$set": {"image_summary": summary}}
+    )
 
 @router.post("/{patient_id}/uploads")
 async def upload_file(
@@ -27,14 +34,14 @@ async def upload_file(
     if user["role"] == "patient" and user["patient_id"] != patient_id:
         raise HTTPException(status_code=403, detail="Cannot upload for other patient")
 
-    # Read content for OCR before upload (since upload consumes stream)
+    # Read content for Analysis
     content = await file.read()
     await file.seek(0)
     
     file_id = await upload_file_to_gridfs(file, patient_id, user["sub"])
     
-    # Trigger OCR in background
-    background_tasks.add_task(process_ocr, file_id, content)
+    # Trigger Vision Analysis in background
+    background_tasks.add_task(process_image_analysis, file_id, content, file.filename)
     
     return {"file_id": str(file_id)}
 

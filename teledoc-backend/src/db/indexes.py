@@ -16,7 +16,8 @@ async def create_indexes():
     # Requirement says: "uploads (GridFS + metadata): Metadata fields: file_id, patient_id..."
     # We will use a separate collection 'uploads_metadata' or just 'uploads' to store the extra metadata linking to GridFS file_id.
     await db.uploads.create_index("patient_id")
-    await db.uploads.create_index([("ocr_text", pymongo.TEXT)])
+    # Create text index on image_summary for keyword search
+    await db.uploads.create_index([("image_summary", pymongo.TEXT)])
     
     # Chats
     await db.chats.create_index("patient_id")

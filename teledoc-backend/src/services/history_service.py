@@ -99,7 +99,7 @@ async def build_extended_context(patient_id: str, query: str) -> str:
     ).limit(3)
     
     async for upload in cursor:
-        ocr = upload.get("ocr_text", "")[:200] # Truncate
+        ocr = upload.get("image_summary", "")[:200] # Truncate
         context_parts.append(f"- File '{upload['filename']}': {ocr}...")
         
     if not context_parts:

@@ -1,11 +1,14 @@
 from src.db.client import get_database
 from src.services.keywords import extract_keywords
+import pymongo # Added import for pymongo
 
 async def get_relevant_context(patient_id: str, current_text: str) -> str:
     db = get_database()
     
     # 1. Extract keywords from current text
     keywords = extract_keywords(current_text, top_n=5)
+    
+
     
     context_parts = []
     
@@ -31,8 +34,8 @@ async def get_relevant_context(patient_id: str, current_text: str) -> str:
         ).limit(3)
         
         async for upload in cursor:
-            if upload.get('ocr_text'):
-                context_parts.append(f"Document ({upload['filename']}): {upload['ocr_text'][:200]}...")
+            ocr = upload.get("image_summary", "")[:200] # Truncate
+            context_parts.append(f"- File '{upload['filename']}': {ocr}...")
 
     # Fallback: if no keywords or no results, just get last chat summary
     if not context_parts:
