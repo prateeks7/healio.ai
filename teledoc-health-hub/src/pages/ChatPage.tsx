@@ -165,27 +165,6 @@ export default function ChatPage() {
             isAgentTyping={isAgentTyping || diagnosisMutation.isPending}
           />
 
-          {/* Quick Prompts */}
-          {messages.length > 0 && messages.length < 10 && (
-            <div className="border-t bg-muted/30 p-3">
-              <p className="text-xs text-muted-foreground mb-2">Quick prompts (OLDCARTS):</p>
-              <div className="flex flex-wrap gap-2">
-                {quickPrompts.map((prompt, index) => (
-                  <Button
-                    key={index}
-                    variant="outline"
-                    size="sm"
-                    className="text-xs h-7"
-                    onClick={() => sendMutation.mutate({ content: prompt })}
-                    disabled={sendMutation.isPending}
-                  >
-                    {prompt}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          )}
-
           <MessageInput
             onSend={(message, files) => {
               // Add user message immediately

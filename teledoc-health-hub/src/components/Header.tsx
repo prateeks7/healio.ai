@@ -62,9 +62,6 @@ export function Header() {
                   <Button variant="ghost" asChild>
                     <Link to="/chat/history">Chat History</Link>
                   </Button>
-                  <Button variant="ghost" asChild>
-                    <Link to="/chat/history">Chat History</Link>
-                  </Button>
                   <Button variant="ghost" asChild className="relative">
                     <Link to="/reports">
                       My Reports
