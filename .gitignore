@@ -1,7 +1,31 @@
+# Dependencies
 node_modules/
+venv/
 __pycache__/
+
+# Environment variables
 .env
+*.env
+
+# OS files
 .DS_Store
+
+# Build outputs
 dist/
+build/
+
+# Testing & experiments
 api_testing.ipynb
 temp_experiments/
+*.pdf
+!Evaluation/model_evaluation.pdf
+!Evaluation/assets/*.pdf
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log

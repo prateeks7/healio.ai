@@ -1,25 +1,32 @@
-# TeleDoc Backend
+# Healio.AI Backend
 
-A multi-agent medical intake and report system backend built with FastAPI, MongoDB, and CrewAI (via Gemini).
+A multi-agent medical intake and report system backend built with FastAPI, MongoDB, CrewAI, and Google Gemini.
 
 ## Overview
 
-TeleDoc simulates a telemedicine workflow where:
+Healio.AI simulates a telemedicine workflow where:
 1.  **Patient** logs in via Google.
-2.  **Patient** fills out medical history and uploads documents (OCR enabled).
-3.  **Interaction Agent** interviews the patient about their symptoms.
-4.  **Diagnosis Agent** analyzes the chat and history to propose a diagnosis.
-5.  **Report Agent** generates a doctor-ready report.
-6.  **Doctor** reviews and approves the report.
+2.  **Patient** fills out medical history and uploads medical documents (images/PDFs).
+3.  **Vision AI** analyzes uploaded files using Gemini Flash 2.0 Vision.
+4.  **Interaction Agent** interviews the patient about their symptoms with access to file summaries.
+5.  **Medical Crew** (multi-agent system) analyzes the chat, history, and file summaries to propose a diagnosis.
+6.  **Report Generator** creates a comprehensive doctor-ready report with treatment plan.
+7.  **Doctor** reviews and approves the report.
 
 ## Tech Stack
 
--   **Language**: Python 3.11
+-   **Language**: Python 3.11+
 -   **API**: FastAPI
--   **Database**: MongoDB (Motor async client) + GridFS for files
+-   **Database**: MongoDB (Motor async client) + GridFS for file storage
 -   **Auth**: Google Sign-In (ID Token verification) + JWT
--   **Agents**: Custom agent loop using Gemini Pro
--   **OCR**: Tesseract (via `pytesseract`)
+-   **AI/LLM**: 
+    -   Google Gemini Flash 2.0 (Chat & Vision)
+    -   LangChain for LLM orchestration
+    -   CrewAI for multi-agent diagnosis workflow
+-   **File Analysis**: 
+    -   Gemini Vision API for medical image analysis
+    -   PyPDF for PDF text extraction
+-   **PDF Generation**: ReportLab
 
 ## Setup
 
@@ -89,11 +96,12 @@ http PUT :8000/patients/<PATIENT_ID>/history \
 ```
 
 ### 3. Upload File
-Upload a PDF or Image (OCR will run in background).
+Upload a medical image or PDF (analyzed using Gemini Vision API).
 ```bash
 http --form POST :8000/patients/<PATIENT_ID>/uploads \
     Authorization:"Bearer $TOKEN" \
-    file@/path/to/lab_result.png
+    file@/path/to/xray.png
+# Response includes file_id and a preview of the AI-generated summary
 ```
 
 ### 4. Start Chat
