@@ -29,3 +29,11 @@ temp_experiments/
 
 # Logs
 *.log
+
+# Large Media & Docs
+*.mp4
+*.mov
+*.docx
+*.png
+*.jpg
+*.jpeg
